@@ -259,6 +259,7 @@ def main():
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
     vocab_list = list(tokenizer.vocab.keys())
     with DocumentDatabase(reduce_memory=args.reduce_memory) as docs:
+        jpath = jieba_path.Jpath()
         corpu_list= file_List(args.train_corpus,'txt')
         for item in corpu_list:
           #with args.train_corpus.open() as f:
