@@ -231,6 +231,15 @@ def create_instances_from_document(
     return instances
 
 
+#文件列表
+def file_List(path, type='txt'):
+    files = []
+    for file in os.listdir(path):
+
+        if file.endswith("." + type):
+            print(path+file)
+            files.append(path+file)
+    return files
 
 def main():
     parser = ArgumentParser()
