@@ -242,7 +242,7 @@ def main():
     parser.add_argument("--do_lower_case", action="store_true")
 
     parser.add_argument("--reduce_memory", action="store_true",
-                        help="Reduce memory usage for large datasets by keeping data on disc rather than in memory")
+                        help="Reduce memory usage for large datasets by keeping data on disc rather than in memory  通过将数据保存在硬盘而不是内存中来减少大型数据集的内存使用量")
 
     parser.add_argument("--epochs_to_generate", type=int, default=3,
                         help="Number of epochs of data to pregenerate")
@@ -261,7 +261,7 @@ def main():
     with DocumentDatabase(reduce_memory=args.reduce_memory) as docs:
         jpath = jieba_path.Jpath()
         print('args.train_corpus',args.train_corpus)
-        corpu_path='./'+str(args.train_corpus)+'/'
+        corpu_path=str(args.train_corpus)+'/'
         corpu_list= jpath.file_List(corpu_path,'txt')
         for item in corpu_list:
           #with args.train_corpus.open() as f:
