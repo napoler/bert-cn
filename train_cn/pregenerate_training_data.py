@@ -10,6 +10,7 @@ import numpy as np
 import json
 import re
 import os
+from jieba_path import jieba_path
 
 class DocumentDatabase:
     def __init__(self, reduce_memory=False):
@@ -270,7 +271,7 @@ def main():
         corpu_list= file_List(args.train_corpus,'txt')
         for item in corpu_list:
           #with args.train_corpus.open() as f:
-          with item.open() as f:
+          with open(item, encoding='utf-8').read() as f:
               doc = []
               for line in tqdm(f, desc="Loading Dataset", unit=" lines"):
                   line = line.strip()
