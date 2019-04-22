@@ -259,10 +259,15 @@ def main():
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
     vocab_list = list(tokenizer.vocab.keys())
     with DocumentDatabase(reduce_memory=args.reduce_memory) as docs:
-        corpu_list= file_List(args.train_corpus,'txt')
+        jpath = jieba_path.Jpath()
+        print('args.train_corpus',args.train_corpus)
+        corpu_path='./'+str(args.train_corpus)+'/'
+        corpu_list= jpath.file_List(corpu_path,'txt')
         for item in corpu_list:
           #with args.train_corpus.open() as f:
-          with open(item, encoding='utf-8').read() as f:
+          #docs = []
+
+          with open(item, encoding='utf-8') as f:
               doc = []
               for line in tqdm(f, desc="Loading Dataset", unit=" lines"):
                   line = line.strip()
@@ -271,37 +276,43 @@ def main():
                       doc = []
                   else:
                       tokens = tokenizer.tokenize(line)
+                      print('line tokens',tokens)
                       doc.append(tokens)
               if doc:
                   docs.add_document(doc)  # If the last doc didn't end on a newline, make sure it still gets added
-          if len(docs) <= 1:
-              exit("ERROR: No document breaks were found in the input file! These are necessary to allow the script to "
-                   "ensure that random NextSentences are not sampled from the same document. Please add blank lines to "
-                   "indicate breaks between documents in your input file. If your dataset does not contain multiple "
-                   "documents, blank lines can be inserted at any natural boundary, such as the ends of chapters, "
-                   "sections or paragraphs.")
 
-          args.output_dir.mkdir(exist_ok=True)
-          for epoch in trange(args.epochs_to_generate, desc="Epoch"):
-              epoch_filename = args.output_dir / f"epoch_{epoch}.json"
-              num_instances = 0
-              with epoch_filename.open('w') as epoch_file:
-                  for doc_idx in trange(len(docs), desc="Document"):
-                      doc_instances = create_instances_from_document(
-                          docs, doc_idx, max_seq_length=args.max_seq_len, short_seq_prob=args.short_seq_prob,
-                          masked_lm_prob=args.masked_lm_prob, max_predictions_per_seq=args.max_predictions_per_seq,
-                          vocab_list=vocab_list)
-                      doc_instances = [json.dumps(instance) for instance in doc_instances]
-                      for instance in doc_instances:
-                          epoch_file.write(instance + '\n')
-                          num_instances += 1
-              metrics_file = args.output_dir / f"epoch_{epoch}_metrics.json"
-              with metrics_file.open('w') as metrics_file:
-                  metrics = {
-                      "num_training_examples": num_instances,
-                      "max_seq_len": args.max_seq_len
-                  }
-                  metrics_file.write(json.dumps(metrics))
+          #docs_all.append(docs)
+
+        if len(docs) <= 1:
+            exit("ERROR: No document breaks were found in the input file! These are necessary to allow the script to "
+                 "ensure that random NextSentences are not sampled from the same document. Please add blank lines to "
+                 "indicate breaks between documents in your input file. If your dataset does not contain multiple "
+                 "documents, blank lines can be inserted at any natural boundary, such as the ends of chapters, "
+                 "sections or paragraphs.")
+
+        #doc.append(tokens)
+        #docs=docs_all
+        args.output_dir.mkdir(exist_ok=True)
+        for epoch in trange(args.epochs_to_generate, desc="Epoch"):
+            epoch_filename = args.output_dir / f"epoch_{epoch}.json"
+            num_instances = 0
+            with epoch_filename.open('w') as epoch_file:
+                for doc_idx in trange(len(docs), desc="Document"):
+                    doc_instances = create_instances_from_document(
+                        docs, doc_idx, max_seq_length=args.max_seq_len, short_seq_prob=args.short_seq_prob,
+                        masked_lm_prob=args.masked_lm_prob, max_predictions_per_seq=args.max_predictions_per_seq,
+                        vocab_list=vocab_list)
+                    doc_instances = [json.dumps(instance) for instance in doc_instances]
+                    for instance in doc_instances:
+                        epoch_file.write(instance + '\n')
+                        num_instances += 1
+            metrics_file = args.output_dir / f"epoch_{epoch}_metrics.json"
+            with metrics_file.open('w') as metrics_file:
+                metrics = {
+                    "num_training_examples": num_instances,
+                    "max_seq_len": args.max_seq_len
+                }
+                metrics_file.write(json.dumps(metrics))
 
 
 if __name__ == '__main__':
