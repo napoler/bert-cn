@@ -16,6 +16,4 @@ sphinx-apidoc -f -o docs/source/ src --ext-autodoc -e
 
 
 sphinx-apidoc -f -o docs/source/ src --ext-autodoc -e --ext-githubpages --ext-viewcode --ext-todo
-
-
 ```

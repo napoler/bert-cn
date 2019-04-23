@@ -54,8 +54,6 @@ def load_tf_weights_in_bert(model, tf_checkpoint_path):
 
     Load tf checkpoints in a pytorch model
 
-    加载
-
     """
     try:
         import re
