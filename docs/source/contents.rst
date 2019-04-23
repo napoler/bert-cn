@@ -7,7 +7,7 @@ Welcome to bert-cn's documentation!
 ===================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 5
 
    pytorch_pretrained_bert
 

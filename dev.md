@@ -12,10 +12,10 @@ cd docs
 sphinx-quickstart
 cd ../
 
-sphinx-apidoc -f -o docs/source/ src --ext-autodoc -e
+sphinx-apidoc -f -o docs/source/ src/pytorch_pretrained_bert/ --ext-autodoc -e
 
-
-sphinx-apidoc -f -o docs/source/ src --ext-autodoc -e --ext-githubpages --ext-viewcode --ext-todo
+# 更多的信息生成
+sphinx-apidoc -f -o docs/source/ src/pytorch_pretrained_bert/ --ext-autodoc -e --ext-githubpages --ext-viewcode --ext-todo
 
 
 ```
