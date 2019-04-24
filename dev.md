@@ -17,5 +17,13 @@ sphinx-apidoc -f -o docs/source/ src/pytorch_pretrained_bert/ --ext-autodoc -e
 # 更多的信息生成
 sphinx-apidoc -f -o docs/source/ src/pytorch_pretrained_bert/ --ext-autodoc -e --ext-githubpages --ext-viewcode --ext-todo
 
+## jupyter
+
+jupyter notebook --generate-config
+
+jupyter notebook password
+
+
+jupyter notebook --ip=0.0.0.0 --port=5000 --allow-root
 
 ```
