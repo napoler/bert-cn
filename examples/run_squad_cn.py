@@ -93,7 +93,12 @@ class SquadExample(object):
 
 
 class InputFeatures(object):
-    """A single set of features of data."""
+    """
+    A single set of features of data
+    
+    一组数据
+    
+    ."""
 
     def __init__(self,
                  unique_id,
@@ -123,7 +128,12 @@ class InputFeatures(object):
 
 
 def read_squad_examples(input_file, is_training, version_2_with_negative):
-    """Read a SQuAD json file into a list of SquadExample."""
+    """
+    
+    Read a SQuAD json file into a list of SquadExample.
+    
+    #把squad json 格式文件转换成 SquadExample 类
+    """
     with open(input_file, "r", encoding='utf-8') as reader:
         input_data = json.load(reader)["data"]
 
@@ -202,7 +212,14 @@ def read_squad_examples(input_file, is_training, version_2_with_negative):
 
 def convert_examples_to_features(examples, tokenizer, max_seq_length,
                                  doc_stride, max_query_length, is_training):
-    """Loads a data file into a list of `InputBatch`s."""
+    """
+    Loads a data file into a list of `InputBatch`s.
+    
+    #创建分批的输入数据格式
+    加载文件到数据
+    
+    
+    """
 
     unique_id = 1000000000
 
@@ -365,7 +382,12 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
 
 def _improve_answer_span(doc_tokens, input_start, input_end, tokenizer,
                          orig_answer_text):
-    """Returns tokenized answer spans that better match the annotated answer."""
+    """
+    Returns tokenized answer spans that better match the annotated answer.
+    #改进答案宽度
+    返回标记化的答案范围，更好地匹配带注释的答案。
+    
+    """
 
     # The SQuAD annotations are character based. We first project them to
     # whitespace-tokenized words. But then after WordPiece tokenization, we can
@@ -401,7 +423,15 @@ def _improve_answer_span(doc_tokens, input_start, input_end, tokenizer,
 
 
 def _check_is_max_context(doc_spans, cur_span_index, position):
-    """Check if this is the 'max context' doc span for the token."""
+    """
+    
+    Check if this is the 'max context' doc span for the token.
+    
+    #创建最大语境匹配
+    
+    检查这是否是令牌的“最大上下文”文档范围。
+    
+    """
 
     # Because of the sliding window approach taken to scoring documents, a single
     # token can appear in multiple documents. E.g.
@@ -445,7 +475,10 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
                       max_answer_length, do_lower_case, output_prediction_file,
                       output_nbest_file, output_null_log_odds_file, verbose_logging,
                       version_2_with_negative, null_score_diff_threshold):
-    """Write final predictions to the json file and log-odds of null if needed."""
+    """Write final predictions to the json file and log-odds of null if needed.
+    #输出预测结果
+    
+    """
     logger.info("Writing predictions to: %s" % (output_prediction_file))
     logger.info("Writing nbest to: %s" % (output_nbest_file))
 
@@ -634,7 +667,10 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
 
 
 def get_final_text(pred_text, orig_text, do_lower_case, verbose_logging=False):
-    """Project the tokenized prediction back to the original text."""
+    """Project the tokenized prediction back to the original text
+    #获得最终输出文本
+    
+    ."""
 
     # When we created the data, we kept track of the alignment between original
     # (whitespace tokenized) tokens and our WordPiece tokenized tokens. So
@@ -742,7 +778,12 @@ def _get_best_indexes(logits, n_best_size):
 
 
 def _compute_softmax(scores):
-    """Compute softmax probability over raw logits."""
+    """
+    Compute softmax probability over raw logits
+    
+    #计算多分类输出概率
+    
+    ."""
     if not scores:
         return []
 
@@ -767,6 +808,7 @@ def main():
     parser = argparse.ArgumentParser()
 
     ## Required parameters
+    ## 必须的参数
     parser.add_argument("--bert_model", default=None, type=str, required=True,
                         help="Bert pre-trained model selected in the list: bert-base-uncased, "
                         "bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased, "
@@ -775,6 +817,7 @@ def main():
                         help="The output directory where the model checkpoints and predictions will be written.")
 
     ## Other parameters
+    # 其他参数
     parser.add_argument("--train_file", default=None, type=str, help="SQuAD json for training. E.g., train-v1.1.json")
     parser.add_argument("--predict_file", default=None, type=str,
                         help="SQuAD json for predictions. E.g., dev-v1.1.json or test-v1.1.json")
@@ -967,50 +1010,56 @@ def main():
         logger.info("  Num orig examples = %d", len(train_examples))
         logger.info("  Num split examples = %d", len(train_features))
         logger.info("  Batch size = %d", args.train_batch_size)
-        logger.info("  Num steps = %d", num_train_optimization_steps)
-        all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
-        all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
-        all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
-        all_start_positions = torch.tensor([f.start_position for f in train_features], dtype=torch.long)
-        all_end_positions = torch.tensor([f.end_position for f in train_features], dtype=torch.long)
-        train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids,
-                                   all_start_positions, all_end_positions)
-        if args.local_rank == -1:
-            train_sampler = RandomSampler(train_data)
-        else:
-            train_sampler = DistributedSampler(train_data)
-        train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
+        logger.info("  Num steps 步数= %d", num_train_optimization_steps)
+        
+        print('train_features',train_features)
+        if len(train_features)>0:
+            all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
+            print('all_input_ids',all_input_ids)
+            all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
+            print('all_input_mask',all_input_mask)
+            all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
+            all_start_positions = torch.tensor([f.start_position for f in train_features], dtype=torch.long)
+            all_end_positions = torch.tensor([f.end_position for f in train_features], dtype=torch.long)
+            train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids,
+                                       all_start_positions, all_end_positions)
+            if args.local_rank == -1:
+                train_sampler = RandomSampler(train_data)
+            else:
+                train_sampler = DistributedSampler(train_data)
+            train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
 
-        model.train()
-        for _ in trange(int(args.num_train_epochs), desc="Epoch"):
-            for step, batch in enumerate(tqdm(train_dataloader, desc="Iteration")):
-                if n_gpu == 1:
-                    batch = tuple(t.to(device) for t in batch) # multi-gpu does scattering it-self
-                input_ids, input_mask, segment_ids, start_positions, end_positions = batch
-                loss = model(input_ids, segment_ids, input_mask, start_positions, end_positions)
-                if n_gpu > 1:
-                    loss = loss.mean() # mean() to average on multi-gpu.
-                if args.gradient_accumulation_steps > 1:
-                    loss = loss / args.gradient_accumulation_steps
+            model.train()
+            for _ in trange(int(args.num_train_epochs), desc="Epoch"):
+                for step, batch in enumerate(tqdm(train_dataloader, desc="Iteration")):
+                    if n_gpu == 1:
+                        batch = tuple(t.to(device) for t in batch) # multi-gpu does scattering it-self
+                    input_ids, input_mask, segment_ids, start_positions, end_positions = batch
+                    loss = model(input_ids, segment_ids, input_mask, start_positions, end_positions)
+                    if n_gpu > 1:
+                        loss = loss.mean() # mean() to average on multi-gpu.
+                    if args.gradient_accumulation_steps > 1:
+                        loss = loss / args.gradient_accumulation_steps
 
-                if args.fp16:
-                    optimizer.backward(loss)
-                else:
-                    loss.backward()
-                if (step + 1) % args.gradient_accumulation_steps == 0:
                     if args.fp16:
-                        # modify learning rate with special warm up BERT uses
-                        # if args.fp16 is False, BertAdam is used and handles this automatically
-                        lr_this_step = args.learning_rate * warmup_linear(global_step/num_train_optimization_steps, args.warmup_proportion)
-                        for param_group in optimizer.param_groups:
-                            param_group['lr'] = lr_this_step
-                    try:
-                        optimizer.step()
-                        optimizer.zero_grad()
-                        global_step += 1
-                    except:
-                         print("An exception occurred")
-                            
+                        optimizer.backward(loss)
+                    else:
+                        loss.backward()
+                    if (step + 1) % args.gradient_accumulation_steps == 0:
+                        if args.fp16:
+                            # modify learning rate with special warm up BERT uses
+                            # if args.fp16 is False, BertAdam is used and handles this automatically
+                            lr_this_step = args.learning_rate * warmup_linear(global_step/num_train_optimization_steps, args.warmup_proportion)
+                            for param_group in optimizer.param_groups:
+                                param_group['lr'] = lr_this_step
+                        try:
+                            optimizer.step()
+                            optimizer.zero_grad()
+                            global_step += 1
+                        except:
+                             print("An exception occurred")
+        else:
+            print("  Num split  = %d so  exit", len(train_features))
                     
 
     if args.do_train:

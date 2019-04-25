@@ -35,7 +35,12 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from torch.utils.data.distributed import DistributedSampler
 
 import tokenization
-from modeling import BertConfig, BertForQuestionAnswering
+#from modeling import BertConfig, BertForQuestionAnswering
+from pytorch_pretrained_bert import WEIGHTS_NAME, CONFIG_NAME
+from pytorch_pretrained_bert import BertConfig,BertTokenizer, BertModel,BertForMaskedLM,BertForNextSentencePrediction,BertForPreTraining,BertForQuestionAnswering
+
+
+
 from optimization import BERTAdam
 from eval import evaluate
 
@@ -782,11 +787,15 @@ def main():
     parser = argparse.ArgumentParser()
 
     ## Required parameters
-    parser.add_argument("--bert_config_file", default='data/bert_config.json', type=str,
+    parser.add_argument("--bert_config_file", default='data/model/config.json', type=str,
                         help="The config json file corresponding to the pre-trained BERT model. "
                              "This specifies the model architecture.")
-    parser.add_argument("--vocab_file", default='data/vocab.txt', type=str,
+    parser.add_argument("--vocab_file", default='data/model/vocab.txt', type=str,
                         help="The vocabulary file that the BERT model was trained on.")
+        ## 模型地址
+    parser.add_argument("--init_checkpoint", default='data/model/pytorch_model.bin', type=str,
+                        help="Initial checkpoint (usually from a pre-trained BERT model).")
+    
     parser.add_argument("--output_dir", default='output', type=str,
                         help="The output directory where the model checkpoints will be written.")
     parser.add_argument("--processed_data", default='processed', type=str,
@@ -796,12 +805,14 @@ def main():
                         help="Whether to run eval on the dev set.")
 
     ## Other parameters
+    
+    ##训练数据默认位置
     parser.add_argument("--train_file", default='data/squad_train.json', type=str,
                         help="SQuAD json for training. E.g., train-v1.1.json")
     parser.add_argument("--predict_file", default='data/squad_dev.json', type=str,
                         help="SQuAD json for predictions. E.g., dev-v1.1.json or test-v1.1.json")
-    parser.add_argument("--init_checkpoint", default='data/pytorch_model.bin', type=str,
-                        help="Initial checkpoint (usually from a pre-trained BERT model).")
+
+    
     parser.add_argument("--finetuned_checkpoint", default='ft_dir/ft_model.bin', type=str,
                         help="finetuned checkpoint (usually from a pre-trained BERT model).")
     parser.add_argument("--do_lower_case", default=True, action='store_true',
@@ -953,9 +964,32 @@ def main():
                 pickle.dump([eval_features, eval_examples], f)
 
     model = BertForQuestionAnswering(bert_config)
+    
     if args.do_train and args.init_checkpoint is not None:
         logger.info('Loading init checkpoint')
-        model.bert.load_state_dict(torch.load(args.init_checkpoint, map_location='cpu'))
+#         model.bert.load_state_dict(torch.load(args.init_checkpoint, map_location='cpu'))
+        init_checkpoint=args.init_checkpoint
+        model.load_state_dict(torch.load(init_checkpoint))
+    
+        logger.info('args.init_checkpoint')
+#         print('args.init_checkpoint',args.init_checkpoint)
+# #         model = BertForQuestionAnswering(bert_config)
+# #         state_dict=torch.load(args.init_checkpoint)
+# # #         print('state_dict',state_dict)
+# #         """
+# #         尝试修复问题
+        
+# #         """
+# #         model.load_state_dict(state_dict)
+#         config = BertConfig.from_json_file(bert_config)
+#         model = BertForQuestionAnswering(config)
+#         state_dict = torch.load(args.init_checkpoint)
+#         model.load_state_dict(state_dict)
+#         # Example for a Bert model
+#         #config = BertConfig.from_json_file(output_config_file)
+#         #model = BertForQuestionAnswering(config)
+# #         state_dict = torch.load(output_model_file)
+# #         model.load_state_dict(state_dict)
         logger.info('Loaded init checkpoint')
     elif args.do_predict:
         logger.info('Loading fine-tuned checkpoint')
@@ -988,7 +1022,7 @@ def main():
 
     global_step = 0
     if args.do_train:
-        logger.info("***** Running training *****")
+        logger.info("***** Running training 开始训练*****")
         logger.info("  Num split examples = %d", len(train_features))
         logger.info("  Batch size = %d", args.train_batch_size)
         logger.info("  Num steps = %d", num_train_steps)
@@ -1001,6 +1035,8 @@ def main():
 
         train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids,
                                    all_start_positions, all_end_positions)
+        print('train_data',train_data)
+        
         if args.local_rank == -1:
             train_sampler = RandomSampler(train_data)
         else:

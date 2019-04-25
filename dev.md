@@ -24,6 +24,10 @@ jupyter notebook --generate-config
 jupyter notebook password
 
 
-jupyter notebook --ip=0.0.0.0 --port=5000 --allow-root
+jupyter notebook --ip=0.0.0.0 --port=5000 --allow-root --browser="UTF-8"
+
+jupyter notebook -h
+
+export LC_ALL=$(locale -a | grep UTF-8)
 
 ```

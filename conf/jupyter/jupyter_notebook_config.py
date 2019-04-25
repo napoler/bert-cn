@@ -258,7 +258,9 @@ c.NotebookApp.ip = '0.0.0.0'
 #c.NotebookApp.nbserver_extensions = {}
 
 ## The directory to use for notebooks and kernels.
-#c.NotebookApp.notebook_dir = ''
+c.NotebookApp.notebook_dir = '/workspace'
+
+c.PAMAuthenticator.encoding = 'utf8'         #指定utf-8编码，解决读取中文路径或者文件乱码问题
 
 ## Whether to open in a browser after starting. The specific browser used is
 #  platform dependent and determined by the python standard library `webbrowser`
@@ -273,7 +275,7 @@ c.NotebookApp.ip = '0.0.0.0'
 #    from notebook.auth import passwd; passwd()
 #
 #  The string should be of the form type:salt:hashed-password.
-#c.NotebookApp.password = ''
+c.NotebookApp.password = 'sha1:480c8a6ec467:3253b2c6a94144e0c55936110f94fde19145b609'
 
 ## Forces users to use a password for the Notebook server. This is useful in a
 #  multi user environment, for instance when everybody in the LAN can access each

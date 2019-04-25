@@ -24,6 +24,8 @@ wheels/
 
 data/
 
+examples/BERT-for-Chinese-Question-Answering-master/data/model/
+
 *.egg-info/
 .installed.cfg
 *.egg
