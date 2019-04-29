@@ -1,3 +1,7 @@
+## 运行docker
+
+https://github.com/napoler/Docker-pytorch-pretrained-BERT
+
 
 ## 提交包
 python3 setup.py sdist
@@ -24,10 +28,20 @@ jupyter notebook --generate-config
 jupyter notebook password
 
 
-jupyter notebook --ip=0.0.0.0 --port=5000 --allow-root --browser="UTF-8"
+jupyter notebook --ip=0.0.0.0 --port=5000 --allow-root --browser="UTF-8" --config=/workspace/conf/jupyter/jupyter_notebook_config.py
 
 jupyter notebook -h
+
+
+jupyter notebook --allow-root --config=/workspace/conf/jupyter/jupyter_notebook_config.py
+
+
+
 
 export LC_ALL=$(locale -a | grep UTF-8)
 
 ```
+
+## 修复权限
+
+ chmod 777 -R ./* 

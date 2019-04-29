@@ -95,9 +95,9 @@ class SquadExample(object):
 class InputFeatures(object):
     """
     A single set of features of data
-    
+
     一组数据
-    
+
     ."""
 
     def __init__(self,
@@ -129,9 +129,9 @@ class InputFeatures(object):
 
 def read_squad_examples(input_file, is_training, version_2_with_negative):
     """
-    
+
     Read a SQuAD json file into a list of SquadExample.
-    
+
     #把squad json 格式文件转换成 SquadExample 类
     """
     with open(input_file, "r", encoding='utf-8') as reader:
@@ -143,12 +143,17 @@ def read_squad_examples(input_file, is_training, version_2_with_negative):
         return False
 
     examples = []
+    logger.info("运行测试" )
     for entry in input_data:
+        logger.info("entry 测试问题 %s"%entry)
         for paragraph in entry["paragraphs"]:
             paragraph_text = paragraph["context"]
             doc_tokens = []
             char_to_word_offset = []
             prev_is_whitespace = True
+
+
+            logger.info("paragraph_text 段落内容 %s"%paragraph_text)
             for c in paragraph_text:
                 if is_whitespace(c):
                     prev_is_whitespace = True
@@ -158,11 +163,16 @@ def read_squad_examples(input_file, is_training, version_2_with_negative):
                     else:
                         doc_tokens[-1] += c
                     prev_is_whitespace = False
+                # logger.info("doc_tokens %s"%doc_tokens)
                 char_to_word_offset.append(len(doc_tokens) - 1)
 
             for qa in paragraph["qas"]:
                 qas_id = qa["id"]
                 question_text = qa["question"]
+
+                logger.info("qas_id: %s" % (qas_id))
+                logger.info("question_text: %s" % (question_text))
+
                 start_position = None
                 end_position = None
                 orig_answer_text = None
@@ -176,10 +186,16 @@ def read_squad_examples(input_file, is_training, version_2_with_negative):
                     if not is_impossible:
                         answer = qa["answers"][0]
                         orig_answer_text = answer["text"]
+                        logger.info("orig_answer_text 原始正确答案为 %s"%orig_answer_text)
                         answer_offset = answer["answer_start"]
+                        logger.info("answer_offset %s"%answer_offset)
+                        ### 新产生的内容
                         answer_length = len(orig_answer_text)
                         start_position = char_to_word_offset[answer_offset]
                         end_position = char_to_word_offset[answer_offset + answer_length - 1]
+                        # logger.info("end_position %s"%end_position)
+                        logger.info("start_position %s"%start_position)
+                        logger.info("end_position %s"%end_position)
                         # Only add answers where the text can be exactly recovered from the
                         # document. If this CAN'T happen it's likely due to weird Unicode
                         # stuff so we will just skip the example.
@@ -187,10 +203,11 @@ def read_squad_examples(input_file, is_training, version_2_with_negative):
                         # Note that this means for training mode, every example is NOT
                         # guaranteed to be preserved.
                         actual_text = " ".join(doc_tokens[start_position:(end_position + 1)])
+                        logger.info("actual_text 实际的内容 %s"%actual_text)
                         cleaned_answer_text = " ".join(
                             whitespace_tokenize(orig_answer_text))
                         if actual_text.find(cleaned_answer_text) == -1:
-                            logger.warning("Could not find answer: '%s' vs. '%s'",
+                            logger.warning("Could not find answer 找不到回答: actual_text:'%s' vs. cleaned_answer_text:'%s'",
                                            actual_text, cleaned_answer_text)
                             continue
                     else:
@@ -214,11 +231,11 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
                                  doc_stride, max_query_length, is_training):
     """
     Loads a data file into a list of `InputBatch`s.
-    
+
     #创建分批的输入数据格式
     加载文件到数据
-    
-    
+
+
     """
 
     unique_id = 1000000000
@@ -273,8 +290,9 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
             if start_offset + length == len(all_doc_tokens):
                 break
             start_offset += min(length, doc_stride)
-
+        
         for (doc_span_index, doc_span) in enumerate(doc_spans):
+            # logger.info("doc_span %s"%doc_span)
             tokens = []
             token_to_orig_map = {}
             token_is_max_context = {}
@@ -337,11 +355,11 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
                 start_position = 0
                 end_position = 0
             if example_index < 20:
-                logger.info("*** Example ***")
+                logger.info("*** Example 示例***")
                 logger.info("unique_id: %s" % (unique_id))
                 logger.info("example_index: %s" % (example_index))
                 logger.info("doc_span_index: %s" % (doc_span_index))
-                logger.info("tokens: %s" % " ".join(tokens))
+                logger.info("tokens训练语料为: %s" % " ".join(tokens))
                 logger.info("token_to_orig_map: %s" % " ".join([
                     "%d:%d" % (x, y) for (x, y) in token_to_orig_map.items()]))
                 logger.info("token_is_max_context: %s" % " ".join([
@@ -352,16 +370,19 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
                     "input_mask: %s" % " ".join([str(x) for x in input_mask]))
                 logger.info(
                     "segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
+
+                
                 if is_training and example.is_impossible:
-                    logger.info("impossible example")
+                    logger.info("impossible example 不可能的")
                 if is_training and not example.is_impossible:
                     answer_text = " ".join(tokens[start_position:(end_position + 1)])
-                    logger.info("start_position: %d" % (start_position))
-                    logger.info("end_position: %d" % (end_position))
+                    logger.info("start_position 开始位置: %d" % (start_position))
+                    logger.info("end_position 结束位置: %d" % (end_position))
                     logger.info(
                         "answer: %s" % (answer_text))
 
             features.append(
+                #输入语料
                 InputFeatures(
                     unique_id=unique_id,
                     example_index=example_index,
@@ -386,7 +407,7 @@ def _improve_answer_span(doc_tokens, input_start, input_end, tokenizer,
     Returns tokenized answer spans that better match the annotated answer.
     #改进答案宽度
     返回标记化的答案范围，更好地匹配带注释的答案。
-    
+
     """
 
     # The SQuAD annotations are character based. We first project them to
@@ -424,13 +445,13 @@ def _improve_answer_span(doc_tokens, input_start, input_end, tokenizer,
 
 def _check_is_max_context(doc_spans, cur_span_index, position):
     """
-    
+
     Check if this is the 'max context' doc span for the token.
-    
+
     #创建最大语境匹配
-    
+
     检查这是否是令牌的“最大上下文”文档范围。
-    
+
     """
 
     # Because of the sliding window approach taken to scoring documents, a single
@@ -477,8 +498,9 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
                       version_2_with_negative, null_score_diff_threshold):
     """Write final predictions to the json file and log-odds of null if needed.
     #输出预测结果
-    
+
     """
+    logger.info("开始输出预测结果")
     logger.info("Writing predictions to: %s" % (output_prediction_file))
     logger.info("Writing nbest to: %s" % (output_nbest_file))
 
@@ -508,9 +530,17 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
         null_start_logit = 0  # the start logit at the slice with min null score
         null_end_logit = 0  # the end logit at the slice with min null score
         for (feature_index, feature) in enumerate(features):
+
+            logger.info("feature %s" % feature)
+            logger.info("n_best_size %s" % n_best_size)
+
+            # logger.info("result.start_logits %s" % result.start_logits)
+            # logger.info("result.end_logits %s" % result.end_logits)
             result = unique_id_to_result[feature.unique_id]
             start_indexes = _get_best_indexes(result.start_logits, n_best_size)
             end_indexes = _get_best_indexes(result.end_logits, n_best_size)
+            logger.info("start_indexes %s" % start_indexes)
+            logger.info("end_indexes %s" % end_indexes)
             # if we could have irrelevant answers, get the min score of irrelevant
             if version_2_with_negative:
                 feature_null_score = result.start_logits[0] + result.end_logits[0]
@@ -519,26 +549,40 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
                     min_null_feature_index = feature_index
                     null_start_logit = result.start_logits[0]
                     null_end_logit = result.end_logits[0]
+            logger.info('feature.tokens %s' %feature.tokens) 
+            logger.info('feature.token_to_orig_map %s' %feature.token_to_orig_map) 
             for start_index in start_indexes:
                 for end_index in end_indexes:
+                    
                     # We could hypothetically create invalid predictions, e.g., predict
                     # that the start of the span is in the question. We throw out all
                     # invalid predictions.
                     if start_index >= len(feature.tokens):
+                        logger.info('start_index %s'%start_index) 
+                        logger.info('%s'%len(feature.tokens) ) 
+                        logger.info('1' ) 
                         continue
                     if end_index >= len(feature.tokens):
+                        logger.info('2' ) 
                         continue
                     if start_index not in feature.token_to_orig_map:
+                        logger.info('ww not in feature.token_to_orig_map:' ) 
                         continue
                     if end_index not in feature.token_to_orig_map:
+                        logger.info('end_index not in feature.token_to_orig_map:' ) 
                         continue
                     if not feature.token_is_max_context.get(start_index, False):
+                        logger.info('end_index < start111_index' ) 
                         continue
                     if end_index < start_index:
+                        logger.info('end_index < start_index' ) 
                         continue
                     length = end_index - start_index + 1
+                    logger.info('length %s' %length) 
                     if length > max_answer_length:
                         continue
+                    # logger.info('start_index %s' % start_index)
+                    # logger.info('end_index %s' % end_index)
                     prelim_predictions.append(
                         _PrelimPrediction(
                             feature_index=feature_index,
@@ -546,6 +590,8 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
                             end_index=end_index,
                             start_logit=result.start_logits[start_index],
                             end_logit=result.end_logits[end_index]))
+            logger.info('prelim_predictions %s' % prelim_predictions)
+
         if version_2_with_negative:
             prelim_predictions.append(
                 _PrelimPrediction(
@@ -585,6 +631,7 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
                 orig_text = " ".join(orig_tokens)
 
                 final_text = get_final_text(tok_text, orig_text, do_lower_case, verbose_logging)
+                logger.info("final_text %s "%final_text)
                 if final_text in seen_predictions:
                     continue
 
@@ -592,7 +639,7 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
             else:
                 final_text = ""
                 seen_predictions[final_text] = True
-
+            logger.info("final_text 预测结果为 %s "%final_text)
             nbest.append(
                 _NbestPrediction(
                     text=final_text,
@@ -606,19 +653,19 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
                         text="",
                         start_logit=null_start_logit,
                         end_logit=null_end_logit))
-                
+
             # In very rare edge cases we could only have single null prediction.
             # So we just create a nonce prediction in this case to avoid failure.
             if len(nbest)==1:
                 nbest.insert(0,
                     _NbestPrediction(text="empty", start_logit=0.0, end_logit=0.0))
-                
+
         # In very rare edge cases we could have no valid predictions. So we
         # just create a nonce prediction in this case to avoid failure.
         if not nbest:
             nbest.append(
                 _NbestPrediction(text="empty", start_logit=0.0, end_logit=0.0))
-
+        logger.info("nbest %s"% nbest)
         assert len(nbest) >= 1
 
         total_scores = []
@@ -641,6 +688,7 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
             nbest_json.append(output)
 
         assert len(nbest_json) >= 1
+        logger.info('nbest_json %s' % nbest_json)
 
         if not version_2_with_negative:
             all_predictions[example.qas_id] = nbest_json[0]["text"]
@@ -656,6 +704,7 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
                 all_nbest_json[example.qas_id] = nbest_json
 
     with open(output_prediction_file, "w") as writer:
+        logger.info('all_predictions %s'% all_predictions)
         writer.write(json.dumps(all_predictions, indent=4) + "\n")
 
     with open(output_nbest_file, "w") as writer:
@@ -664,13 +713,20 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
     if version_2_with_negative:
         with open(output_null_log_odds_file, "w") as writer:
             writer.write(json.dumps(scores_diff_json, indent=4) + "\n")
+    #输出结果结束
 
 
+#获得最终输出文本
 def get_final_text(pred_text, orig_text, do_lower_case, verbose_logging=False):
     """Project the tokenized prediction back to the original text
     #获得最终输出文本
-    
+
     ."""
+
+    logger.info("pred_text %s"%pred_text )
+    logger.info("orig_text %s"%orig_text )
+    logger.info("do_lower_case %s"%do_lower_case )
+    # logger.info("pred_text %s"%pred_text )
 
     # When we created the data, we kept track of the alignment between original
     # (whitespace tokenized) tokens and our WordPiece tokenized tokens. So
@@ -780,9 +836,9 @@ def _get_best_indexes(logits, n_best_size):
 def _compute_softmax(scores):
     """
     Compute softmax probability over raw logits
-    
+
     #计算多分类输出概率
-    
+
     ."""
     if not scores:
         return []
@@ -930,6 +986,7 @@ def main():
     if args.do_train:
         train_examples = read_squad_examples(
             input_file=args.train_file, is_training=True, version_2_with_negative=args.version_2_with_negative)
+        logger.info("train_examples 训练语料为 %s"%train_examples)
         num_train_optimization_steps = int(
             len(train_examples) / args.train_batch_size / args.gradient_accumulation_steps) * args.num_train_epochs
         if args.local_rank != -1:
@@ -1011,13 +1068,16 @@ def main():
         logger.info("  Num split examples = %d", len(train_features))
         logger.info("  Batch size = %d", args.train_batch_size)
         logger.info("  Num steps 步数= %d", num_train_optimization_steps)
-        
+
         print('train_features',train_features)
+
         if len(train_features)>0:
             all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
-            print('all_input_ids',all_input_ids)
+ 
+            # logger.info("all_input_ids %s"%all_input_ids)
             all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
-            print('all_input_mask',all_input_mask)
+ 
+            # logger.info("all_input_mask %s"%all_input_mask)
             all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
             all_start_positions = torch.tensor([f.start_position for f in train_features], dtype=torch.long)
             all_end_positions = torch.tensor([f.end_position for f in train_features], dtype=torch.long)
@@ -1027,7 +1087,10 @@ def main():
                 train_sampler = RandomSampler(train_data)
             else:
                 train_sampler = DistributedSampler(train_data)
+            
             train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
+
+            logger.info(" train_data %s", train_data)
 
             model.train()
             for _ in trange(int(args.num_train_epochs), desc="Epoch"):
@@ -1060,7 +1123,7 @@ def main():
                              print("An exception occurred")
         else:
             print("  Num split  = %d so  exit", len(train_features))
-                    
+
 
     if args.do_train:
         # Save a trained model and the associated configuration
@@ -1107,10 +1170,10 @@ def main():
 
         model.eval()
         all_results = []
-        logger.info("Start evaluating")
+        logger.info("开始评估 Start evaluating")
         for input_ids, input_mask, segment_ids, example_indices in tqdm(eval_dataloader, desc="Evaluating"):
             if len(all_results) % 1000 == 0:
-                logger.info("Processing example: %d" % (len(all_results)))
+                logger.info("处理 Processing example: %d" % (len(all_results)))
             input_ids = input_ids.to(device)
             input_mask = input_mask.to(device)
             segment_ids = segment_ids.to(device)
@@ -1124,9 +1187,15 @@ def main():
                 all_results.append(RawResult(unique_id=unique_id,
                                              start_logits=start_logits,
                                              end_logits=end_logits))
+        # logger.info('all_results %s'%all_results)                                   
+
         output_prediction_file = os.path.join(args.output_dir, "predictions.json")
         output_nbest_file = os.path.join(args.output_dir, "nbest_predictions.json")
         output_null_log_odds_file = os.path.join(args.output_dir, "null_odds.json")
+        logger.info('eval_examples %s'%eval_examples)  
+        logger.info('eval_features %s'%eval_features)  
+        # logger.info('eval_examples %s'%eval_examples)  
+        # 预测生成内容
         write_predictions(eval_examples, eval_features, all_results,
                           args.n_best_size, args.max_answer_length,
                           args.do_lower_case, output_prediction_file,
