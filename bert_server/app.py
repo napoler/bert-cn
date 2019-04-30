@@ -19,7 +19,6 @@ def get_post_data():
                 data[key[:-2]] = request.form.getlist(key)
             else:
                 data[key] = value
-
     return data
 @app.route("/")
 def hello():

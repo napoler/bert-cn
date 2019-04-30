@@ -20,7 +20,7 @@ parts/
 sdist/
 var/
 wheels/
-
+bin/
 
 data/
 

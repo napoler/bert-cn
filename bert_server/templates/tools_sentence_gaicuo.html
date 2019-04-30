@@ -77,9 +77,9 @@
             // alert( "Data Loaded: " + data );
             console.log( data)
             if(data.msg){
-              $("#msg").append(data.msg)
+              $("#msg").html(data.msg)
             }
-            $("#prediction_list").append("<ul></ul>")
+            $("#prediction_list").append("</hr><ul></ul>")
             var textLong=''
             $.each( data.data, function( key, value ) {
               console.log(value)
@@ -87,7 +87,7 @@
              
 
             });
-            $("#prediction_list ul").html(textLong)
+            $("#prediction_list ul").append(textLong)
       });
  
 });

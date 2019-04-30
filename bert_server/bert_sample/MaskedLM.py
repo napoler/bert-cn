@@ -4,7 +4,7 @@ from Terry_toolkit import Text
 #进度条显示
 from tqdm import tqdm
 import numpy as np
-from random import *
+import random
 class MaskedLM:
     def __init__(self):
         print('start MaskedLM')
@@ -17,6 +17,18 @@ class MaskedLM:
         """
         self.tokeniser = BertTokenizer.from_pretrained(model)
         self.model = BertForMaskedLM.from_pretrained(model)
+        self.model.eval()
+        
+        if torch.cuda.is_available():
+
+            self.dirve ='cuda'
+        else:
+            self.dirve ='cpu'
+        print('use ',self.dirve)
+        
+        self.model.to(self.dirve)
+
+
     def sentence_pre(self,text1,text2 ):
         """
         进行句子预处理
@@ -36,8 +48,13 @@ class MaskedLM:
         tokenized_text2 = self.tokeniser.tokenize(text2)
         tokenized_text = self.tokeniser.tokenize(text)
 
-        for i in range(len(tokenized_text1)+3,len(tokenized_text1)+5):
-            tokenized_text[i] = '[MASK]'
+        #产生噪点
+        t2=len(tokenized_text2)-2
+        kp = random.randint(0,t2)
+        
+        # for i in range(len(tokenized_text1)+3,len(tokenized_text1)+5):
+        #     tokenized_text[i] = '[MASK]'
+        tokenized_text[kp]
         print('tokenized_text\n',tokenized_text)
         # Convert token to vocabulary indices
         #给单词标号
@@ -67,13 +84,15 @@ class MaskedLM:
     def prediction(self,indexed_tokens,segments_ids):
         
         # Convert inputs to PyTorch tensors
-        tokens_tensor = torch.tensor([indexed_tokens])
+        tokens_tensor = torch.tensor([indexed_tokens]).to(self.dirve)
         # print('编码后的语句信息')
         # print('tokens_tensor\n',tokens_tensor)
-        segments_tensors = torch.tensor([segments_ids])
+        segments_tensors = torch.tensor([segments_ids]).to(self.dirve)
+
         # print('分句标记信息')
         # print('segments_tensors \n',segments_tensors)
-        
+
+        # Predict all tokens
         with torch.no_grad():
             predictions = self.model(tokens_tensor, segments_tensors)
             print('predictions\n',predictions)
