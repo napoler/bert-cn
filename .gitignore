@@ -23,6 +23,9 @@ wheels/
 bin/
 
 data/
+etc/
+share/
+lib/
 
 examples/BERT-for-Chinese-Question-Answering-master/data/model/
 

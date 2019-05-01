@@ -5,12 +5,40 @@ from Terry_toolkit import Text
 from tqdm import tqdm
 import numpy as np
 from random import *
+import multiprocessing as mp
 class SentencePrediction:
     def __init__(self,model='bert-base-chinese'):
         print('start NextSentence')
+#         self.tokeniser = BertTokenizer.from_pretrained(model)
+#         self.model = BertForNextSentencePrediction.from_pretrained(model)
+    def model_init(self,model='bert-base-chinese'):
+        """
+        初始化模型内容
+        
+        >>> model_init(model='bert-base-chinese')
+        
+        """
         self.tokeniser = BertTokenizer.from_pretrained(model)
         self.model = BertForNextSentencePrediction.from_pretrained(model)
+        self.model.eval()
+        if torch.cuda.is_available():
 
+            self.dirve ='cuda'
+        else:
+            self.dirve ='cpu'
+        print('use ',self.dirve)
+        
+        self.model.to(self.dirve)
+    def free_ram(self):
+        """
+        这里进行手动初始化模型
+        
+        """
+        del self.tokeniser
+        del self.model
+        gc.collect()
+        torch.cuda.empty_cache()
+        print('已经释放模型内存')
     def one_sentence(self,data,previous_line):
         """
         文字数组中最符合的下一行
@@ -84,8 +112,8 @@ class SentencePrediction:
             indexed_tokens = self.tokeniser.convert_tokens_to_ids(tokenized_text)
 
             segments_ids = ([0] * len_line_1) + ([1] * len_line_2)
-            tokens_tensor = torch.tensor([indexed_tokens])
-            segments_tensors = torch.tensor([segments_ids])
+            tokens_tensor = torch.tensor([indexed_tokens]).to(self.dirve)
+            segments_tensors = torch.tensor([segments_ids]).to(self.dirve)
             #         print('tokens_tensor',tokens_tensor)
             #         print('segments_tensors',segments_tensors)
             #这里使用模型进行预测
