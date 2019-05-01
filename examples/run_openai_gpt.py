@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2018 Google AI, Google Brain and Carnegie Mellon University Authors and the HugginFace Inc. team.
+# Copyright 2018 Google AI, Google Brain and Carnegie Mellon University Authors and the HuggingFace Inc. team.
 # Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,15 @@
     Adapted from https://github.com/huggingface/pytorch-openai-transformer-lm/blob/master/train.py
     It self adapted from https://github.com/openai/finetune-transformer-lm/blob/master/train.py
 
-    This script with default values fine-tunes and evaluate a pretrained OpenAI GPT on the RocStories dataset
+    This script with default values fine-tunes and evaluate a pretrained OpenAI GPT on the RocStories dataset:
+        python run_openai_gpt.py \
+          --model_name openai-gpt \
+          --do_train \
+          --do_eval \
+          --train_dataset $ROC_STORIES_DIR/cloze_test_val__spring2016\ -\ cloze_test_ALL_val.csv \
+          --eval_dataset $ROC_STORIES_DIR/cloze_test_test__spring2016\ -\ cloze_test_ALL_test.csv \
+          --output_dir ../log \
+          --train_batch_size 16 \
 """
 import argparse
 import os
@@ -31,7 +39,8 @@ import torch
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
                               TensorDataset)
 
-from pytorch_pretrained_bert import OpenAIGPTDoubleHeadsModel, OpenAIGPTTokenizer, OpenAIAdam, cached_path
+from pytorch_pretrained_bert import (OpenAIGPTDoubleHeadsModel, OpenAIGPTTokenizer,
+                                     OpenAIAdam, cached_path, WEIGHTS_NAME, CONFIG_NAME)
 
 ROCSTORIES_URL = "https://s3.amazonaws.com/datasets.huggingface.co/ROCStories.tar.gz"
 
@@ -155,7 +164,7 @@ def main():
     datasets = (train_dataset, eval_dataset)
     encoded_datasets = tokenize_and_encode(datasets)
 
-    # Compute the mex input length for the Transformer
+    # Compute the max input length for the Transformer
     max_length = model.config.n_positions // 2 - 2
     input_length = max(len(story[:max_length]) + max(len(cont1[:max_length]), len(cont2[:max_length])) + 3  \
                            for dataset in encoded_datasets for story, cont1, cont2, _ in dataset)
@@ -202,6 +211,7 @@ def main():
                 loss = args.lm_coef * losses[0] + losses[1]
                 loss.backward()
                 optimizer.step()
+                optimizer.zero_grad()
                 tr_loss += loss.item()
                 exp_average_loss = loss.item() if exp_average_loss is None else 0.7*exp_average_loss+0.3*loss.item()
                 nb_tr_steps += 1
@@ -209,15 +219,20 @@ def main():
 
     # Save a trained model
     if args.do_train:
+        # Save a trained model, configuration and tokenizer
         model_to_save = model.module if hasattr(model, 'module') else model  # Only save the model it-self
-        output_model_file = os.path.join(args.output_dir, "pytorch_model.bin")
-        config = model.config
-        torch.save(model_to_save.state_dict(), output_model_file)
 
-        # Load a trained model that you have fine-tuned
-        model_state_dict = torch.load(output_model_file)
-        model = OpenAIGPTDoubleHeadsModel(config)
-        model.load_state_dict(model_state_dict)
+        # If we save using the predefined names, we can load using `from_pretrained`
+        output_model_file = os.path.join(args.output_dir, WEIGHTS_NAME)
+        output_config_file = os.path.join(args.output_dir, CONFIG_NAME)
+
+        torch.save(model_to_save.state_dict(), output_model_file)
+        model_to_save.config.to_json_file(output_config_file)
+        tokenizer.save_vocabulary(args.output_dir)
+
+        # Load a trained model and vocabulary that you have fine-tuned
+        model = OpenAIGPTDoubleHeadsModel.from_pretrained(args.output_dir)
+        tokenizer = OpenAIGPTTokenizer.from_pretrained(args.output_dir)
         model.to(device)
 
     if args.do_eval:

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- Standard Meta -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <!-- <link rel="stylesheet" type="text/css" href="/static/style.css"> -->
+  <script src="https://cdn.staticfile.org/jquery/3.3.1/jquery.min.js"></script>
+  <link crossorigin="anonymous" integrity="sha384-ATvSpJEmy1egycrmomcFxVn4Z0A6rfjwlzDQrts/1QRerQhR9EEpEYtdysLpQPuQ"
+    href="//lib.baomitu.com/semantic-ui/2.4.1/semantic.min.css" rel="stylesheet">
+  <script crossorigin="anonymous" integrity="sha384-6urqf2sgCGDfIXcoxTUOVIoQV+jFr/Zuc4O2wCRS6Rnd8w0OJ17C4Oo3PuXu8ZtF"
+    src="//lib.baomitu.com/semantic-ui/2.4.1/semantic.min.js"></script>
+</head>
+
+<body>
+
+
+
+  <div class="ui one column doubling stackable grid container">
+
+    <div class="column">
+      <h1>语句改错</h1>
+      <p class="botText">从一段文字中预测最符合下一句的内容</p>
+    </div>
+
+    <div id="chatbox" class="column">
+
+    </div>
+    <div id="chatbox" class="column">
+
+        <form class="ui form" id='sentence_prediction'  >
+ 
+         
+          <div class="field">
+ 
+            <label>句子1</label>
+            <input id ='text1' type="text" name="text1" autocomplete="off" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGP6zwAAAgcBApocMXEAAAAASUVORK5CYII=&quot;); cursor: auto;">
+          </div>
+            <div class="field">
+ 
+                <label>句子2</label>
+                <input id ='text2' type="text" name="text2" autocomplete="off" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGP6zwAAAgcBApocMXEAAAAASUVORK5CYII=&quot;); cursor: auto;">
+              </div>
+
+              <div class="field">
+                  <button id='dosubmit' class="ui button" type="submit" >提交</button>
+            </div>
+          </form>
+
+
+          <div id='msg' class="field">
+             
+        </div>
+        <div id='prediction_list' class="field">
+
+             
+          </div>
+
+    </div>
+
+  </div>
+
+
+
+  <script>
+ $( "#sentence_prediction" ).submit(function( event ) {
+    // Stop form from submitting normally
+  event.preventDefault();
+  var text1 = $("#text1").val();
+  var text2= $("#text2").val();
+    console.log('kaishi'+text1+text2)
+
+        $.post( "/json/sentence/gaicuo", { 'text1': text1, 'text2': text2 })
+          .done(function( data ) {
+            // alert( "Data Loaded: " + data );
+            console.log( data)
+            if(data.msg){
+              $("#msg").html(data.msg)
+            }
+            $("#prediction_list").append("</hr><ul></ul>")
+            var textLong=''
+            $.each( data.data, function( key, value ) {
+              console.log(value)
+              textLong=textLong+"<li>"+value+"</li>"
+             
+
+            });
+            $("#prediction_list ul").append(textLong)
+      });
+ 
+});
+        // var rawText = $("#textInput").val();
+        // var userHtml = '<p class="userText"><span>' + rawText + '</span></p>';
+
+   
+       
+    
+
+
+      // $("#textInput").keypress(function (e) {
+      //   if (e.which == 13) {
+      //     getBotResponse();
+      //   }
+      // });
+      // $("#buttonInput").click(function () {
+      //   getBotResponse();
+      // })
+    </script>
+
+
+</body>
+
+</html>

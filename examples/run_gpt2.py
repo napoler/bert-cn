@@ -16,11 +16,17 @@ logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(messa
 logger = logging.getLogger(__name__)
 
 def top_k_logits(logits, k):
+    """
+    Masks everything but the k top entries as -infinity (1e10).
+    Used to mask logits such that e^-infinity -> 0 won't contribute to the
+    sum of the denominator.
+    """
     if k == 0:
         return logits
-    values, _ = torch.topk(logits, k)
-    min_values = values[:, -1]
-    return torch.where(logits < min_values, torch.ones_like(logits, dtype=logits.dtype) * -1e10, logits)
+    else:
+        values = torch.topk(logits, k)[0]
+        batch_mins = values[:, -1].view(-1, 1).expand_as(logits)
+        return torch.where(logits < batch_mins, torch.ones_like(logits) * -1e10, logits)
 
 def sample_sequence(model, length, start_token=None, batch_size=None, context=None, temperature=1, top_k=0, device='cuda', sample=True):
     if start_token is None:
@@ -52,7 +58,7 @@ def run_model():
     parser.add_argument("--nsamples", type=int, default=1)
     parser.add_argument("--batch_size", type=int, default=-1)
     parser.add_argument("--length", type=int, default=-1)
-    parser.add_argument("--temperature", type=int, default=1)
+    parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument("--top_k", type=int, default=0)
     parser.add_argument('--unconditional', action='store_true', help='If true, unconditional generation.')
     args = parser.parse_args()
@@ -77,29 +83,49 @@ def run_model():
     elif args.length > model.config.n_ctx:
         raise ValueError("Can't get samples longer than window size: %s" % model.config.n_ctx)
 
-    while not args.unconditional:
+    while True:
+        context_tokens = []
         if not args.unconditional:
             raw_text = input("Model prompt >>> ")
             while not raw_text:
                 print('Prompt should not be empty!')
                 raw_text = input("Model prompt >>> ")
             context_tokens = enc.encode(raw_text)
-        generated = 0
-        for _ in range(args.nsamples // args.batch_size):
-            out = sample_sequence(
-                model=model, length=args.length,
-                context=context_tokens if not args.unconditional else None,
-                start_token=enc.encoder['<|endoftext|>'] if args.unconditional else None,
-                batch_size=args.batch_size,
-                temperature=args.temperature, top_k=args.top_k, device=device
-            )
-            out = out[:, len(context_tokens):].tolist()
-            for i in range(args.batch_size):
-                generated += 1
-                text = enc.decode(out[i])
-                print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40)
-                print(text)
-        print("=" * 80)
+            generated = 0
+            for _ in range(args.nsamples // args.batch_size):
+                out = sample_sequence(
+                    model=model, length=args.length,
+                    context=context_tokens,
+                    start_token=None,
+                    batch_size=args.batch_size,
+                    temperature=args.temperature, top_k=args.top_k, device=device
+                )
+                out = out[:, len(context_tokens):].tolist()
+                for i in range(args.batch_size):
+                    generated += 1
+                    text = enc.decode(out[i])
+                    print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40)
+                    print(text)
+            print("=" * 80)
+        else:
+            generated = 0
+            for _ in range(args.nsamples // args.batch_size):
+                out = sample_sequence(
+                    model=model, length=args.length,
+                    context=None,
+                    start_token=enc.encoder['<|endoftext|>'],
+                    batch_size=args.batch_size,
+                    temperature=args.temperature, top_k=args.top_k, device=device
+                )
+                out = out[:,1:].tolist()
+                for i in range(args.batch_size):
+                    generated += 1
+                    text = enc.decode(out[i])
+                    print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40)
+                    print(text)
+            print("=" * 80)
 
 if __name__ == '__main__':
     run_model()
+
+

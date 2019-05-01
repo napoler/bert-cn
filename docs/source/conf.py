@@ -59,7 +59,6 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
     'sphinx.ext.mathjax',
     'sphinx.ext.githubpages',
-
     'sphinx.ext.viewcode']
 
 # -- Options for HTML output -------------------------------------------------
