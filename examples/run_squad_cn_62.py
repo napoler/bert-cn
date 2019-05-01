@@ -979,7 +979,9 @@ def main():
                 logger.info("  Saving train features into cached file %s", cached_train_features_file)
                 with open(cached_train_features_file, "wb") as writer:
                     pickle.dump(train_features, writer)
-        logger.info("***** Running training *****")
+                    
+                    
+        logger.info("***** 运行训练 Running training *****")
         logger.info("  Num orig examples = %d", len(train_examples))
         logger.info("  Num split examples = %d", len(train_features))
         logger.info("  Batch size = %d", args.train_batch_size)
@@ -999,7 +1001,7 @@ def main():
 
         model.train()
         for _ in trange(int(args.num_train_epochs), desc="Epoch"):
-            for step, batch in enumerate(tqdm(train_dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])):
+            for step, batch in enumerate(tqdm(train_dataloader, desc="迭代 Iteration", disable=args.local_rank not in [-1, 0])):
                 if n_gpu == 1:
                     batch = tuple(t.to(device) for t in batch) # multi-gpu does scattering it-self
                 input_ids, input_mask, segment_ids, start_positions, end_positions = batch
@@ -1021,9 +1023,12 @@ def main():
                                                                                  args.warmup_proportion)
                         for param_group in optimizer.param_groups:
                             param_group['lr'] = lr_this_step
-                    optimizer.step()
-                    optimizer.zero_grad()
-                    global_step += 1
+                    try:
+                        optimizer.step()
+                        optimizer.zero_grad()
+                        global_step += 1
+                    except:
+                        print('有问题跳过!')
 
     if args.do_train and (args.local_rank == -1 or torch.distributed.get_rank() == 0):
         # Save a trained model, configuration and tokenizer
@@ -1055,8 +1060,8 @@ def main():
             doc_stride=args.doc_stride,
             max_query_length=args.max_query_length,
             is_training=False)
-
-        logger.info("***** Running predictions *****")
+        print('eval_features',eval_features)
+        logger.info("***** 运行预测 Running predictions *****")
         logger.info("  Num orig examples = %d", len(eval_examples))
         logger.info("  Num split examples = %d", len(eval_features))
         logger.info("  Batch size = %d", args.predict_batch_size)
@@ -1074,15 +1079,24 @@ def main():
         all_results = []
         logger.info("Start evaluating")
         for input_ids, input_mask, segment_ids, example_indices in tqdm(eval_dataloader, desc="Evaluating", disable=args.local_rank not in [-1, 0]):
+            
+            
             if len(all_results) % 1000 == 0:
                 logger.info("Processing example: %d" % (len(all_results)))
             input_ids = input_ids.to(device)
             input_mask = input_mask.to(device)
             segment_ids = segment_ids.to(device)
+            
+            #这里进行训练
+            print("  segment_ids: %d", segment_ids)
+            print("  input_mask: %d", input_mask)
+            print("  input_ids: %d", input_ids)
+            print('example_indices',example_indices)
             with torch.no_grad():
                 batch_start_logits, batch_end_logits = model(input_ids, segment_ids, input_mask)
             for i, example_index in enumerate(example_indices):
                 start_logits = batch_start_logits[i].detach().cpu().tolist()
+                print('start_logits',start_logits)
                 end_logits = batch_end_logits[i].detach().cpu().tolist()
                 eval_feature = eval_features[example_index.item()]
                 unique_id = int(eval_feature.unique_id)
