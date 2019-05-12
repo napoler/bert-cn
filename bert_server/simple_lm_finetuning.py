@@ -567,7 +567,7 @@ def main():
 
     global_step = 0
     if args.do_train:
-        logger.info("***** Running training *****")
+        logger.info("*****  运行训练　Running training *****")
         logger.info("  Num examples = %d", len(train_dataset))
         logger.info("  Batch size = %d", args.train_batch_size)
         logger.info("  Num steps = %d", num_train_optimization_steps)
@@ -578,6 +578,11 @@ def main():
             #TODO: check if this works with current data generator from disk that relies on next(file)
             # (it doesn't return item back by index)
             train_sampler = DistributedSampler(train_dataset)
+            
+        logger.info("  train_dataset %d", train_dataset)
+        logger.info("  train_sampler %d", train_sampler)
+        logger.info("  args.train_batch_size %d", args.train_batch_size)
+#         logger.info("  train_dataset %d", train_dataset)
         train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
 
         model.train()

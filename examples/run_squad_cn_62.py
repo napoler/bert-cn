@@ -447,6 +447,33 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
     """Write final predictions to the json file and log-odds of null if needed."""
     logger.info("Writing predictions to: %s" % (output_prediction_file))
     logger.info("Writing nbest to: %s" % (output_nbest_file))
+    
+    
+    logger.info("all_examples: %s" % (all_examples))
+    logger.info("all_features: %s" % (all_features))
+    logger.info("all_results: %s" % (all_results))
+    logger.info("n_best_size: %s" % (n_best_size))
+    logger.info("max_answer_length: %s" % (max_answer_length))
+    logger.info("do_lower_case: %s" % (do_lower_case))
+    logger.info("output_prediction_file: %s" % (output_prediction_file))
+    logger.info("output_nbest_file: %s" % (output_nbest_file))
+    logger.info("output_null_log_odds_file: %s" % (output_null_log_odds_file))
+    logger.info("verbose_logging: %s" % (verbose_logging))
+    logger.info("version_2_with_negative: %s" % (version_2_with_negative))
+    logger.info("null_score_diff_threshold: %s" % (null_score_diff_threshold))
+#     logger.info("verbose_logging: %s" % (verbose_logging))
+#     logger.info("verbose_logging: %s" % (verbose_logging))
+    
+#     05/04/2019 11:54:57 - INFO - __main__ -   n_best_size: 20
+# 05/04/2019 11:54:57 - INFO - __main__ -   max_answer_length: 30
+# 05/04/2019 11:54:57 - INFO - __main__ -   do_lower_case: False
+# 05/04/2019 11:54:57 - INFO - __main__ -   output_prediction_file: /gdrive/My Drive/bert/data/model/bert_chinese1/predictions.json
+# 05/04/2019 11:54:57 - INFO - __main__ -   output_nbest_file: /gdrive/My Drive/bert/data/model/bert_chinese1/nbest_predictions.json
+# 05/04/2019 11:54:57 - INFO - __main__ -   output_null_log_odds_file: /gdrive/My Drive/bert/data/model/bert_chinese1/null_odds.json
+# 05/04/2019 11:54:57 - INFO - __main__ -   verbose_logging: False
+# 05/04/2019 11:54:57 - INFO - __main__ -   version_2_with_negative: False
+# 05/04/2019 11:54:57 - INFO - __main__ -   null_score_diff_threshold: 0.0
+    
 
     example_index_to_features = collections.defaultdict(list)
     for feature in all_features:
@@ -531,6 +558,7 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
         seen_predictions = {}
         nbest = []
         for pred in prelim_predictions:
+            print('prelim_predictions',prelim_predictions)
             if len(nbest) >= n_best_size:
                 break
             feature = features[pred.feature_index]
