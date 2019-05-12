@@ -607,9 +607,13 @@ def main():
                                                                                  args.warmup_proportion)
                         for param_group in optimizer.param_groups:
                             param_group['lr'] = lr_this_step
-                    optimizer.step()
-                    optimizer.zero_grad()
-                    global_step += 1
+                    try:
+                        optimizer.step()
+                        optimizer.zero_grad()
+                        global_step += 1
+                    except:
+                        pass
+                    
 
         # Save a trained model
         logger.info("** ** * Saving fine - tuned model ** ** * ")

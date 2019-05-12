@@ -14,5 +14,5 @@ python run_squad.py \
   --learning_rate 3e-5 \
   --num_train_epochs 2.0 \
   --max_seq_length 384 \
-  --doc_stride 128 \
+  --doc_stride 128 \ 
   --output_dir /workspace/data/corpus/SQuAD/debug_squad/

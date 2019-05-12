@@ -4,7 +4,7 @@ git clone https://gitee.com/terrychan/apex.git && cd apex && python setup.py ins
 ## 运行docker
 
 https://github.com/napoler/Docker-pytorch-pretrained-BERT
-
+pip freeze > requirements.txt
 ## 创建虚拟环境
 创建
 python3 -m venv 项目目录
