@@ -6,7 +6,7 @@ from functools import partial
 import multiprocessing as mp
 from flask import Flask, render_template, request, json, Response, jsonify
 from bert_sample import SentencePrediction,MaskedLM
-
+from flask_cors import CORS,cross_origin
 # import numba
 # from numba import jit, njit, prange, config, generated_jit
 
@@ -49,6 +49,7 @@ def tools_sentence_prediction():
     return render_template("tools_sentence_prediction.html",**locals())
     
 @app.route("/json/sentence/prediction" ,methods=['GET', 'POST'])
+@cross_origin()
 def json_sentence_prediction():
     data= get_post_data()
     print('data',data)
@@ -88,6 +89,7 @@ def tools_sentence_gaicuo():
 
 #改错
 @app.route("/json/sentence/gaicuo" ,methods=['GET', 'POST'])
+@cross_origin()
 def json_sentence_gaicuo():
     data= get_post_data()
     print('data',data)
@@ -157,6 +159,9 @@ if __name__ == "__main__":
     #app.run()
     app.run(
          host='0.0.0.0',
+          threaded=True,
+        #   debug=True,
          port=8110,
       #   debug=True
          )
+    CORS(app)

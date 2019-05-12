@@ -6,6 +6,7 @@ from tqdm import tqdm
 import numpy as np
 from random import *
 import multiprocessing as mp
+import gc
 class SentencePrediction:
     def __init__(self,model='bert-base-chinese'):
         print('start NextSentence')
