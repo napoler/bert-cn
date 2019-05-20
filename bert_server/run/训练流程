@@ -1,0 +1,32 @@
+保存本地模型
+========================
+python3 save.py
+
+训练流程
+========================
+## 准备训练数据
+
+python3 pregenerate_training_data.py --train_corpus /home/terry/pan/github/bert/my_corpus.txt  --bert_model bert-base-chinese --do_lower_case --output_dir /home/terry/pan/github/bert/training/ --epochs_to_generate 3 --max_seq_len 64
+
+## 进行训练
+
+python3 finetune_on_pregenerated.py --pregenerated_data /home/terry/pan/github/bert/training/ --bert_model bert-base-chinese --do_lower_case --output_dir /home/terry/pan/github/bert/model/finetuned_lm/ --epochs 30 --no_cuda
+
+
+
+
+
+
+
+
+
+使用本地模型
+========================
+## 准备训练数据
+
+python3 pregenerate_training_data.py --train_corpus /home/terry/pan/github/bert/my_corpus.txt  --bert_model /home/terry/pan/github/bert/model/bert-base-chinese/ --do_lower_case --output_dir /home/terry/pan/github/bert/training/ --epochs_to_generate 3 --max_seq_len 64
+
+## 进行训练
+
+python3 finetune_on_pregenerated.py --pregenerated_data /home/terry/pan/github/bert/training/ --bert_model /home/terry/pan/github/bert/model/bert-base-chinese/ --do_lower_case --output_dir /home/terry/pan/github/bert/model/finetuned_lm/ --epochs 30 --no_cuda
+
