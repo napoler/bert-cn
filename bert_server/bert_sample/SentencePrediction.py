@@ -15,9 +15,9 @@ class SentencePrediction:
     def model_init(self,model='bert-base-chinese'):
         """
         初始化模型内容
-        
+
         >>> model_init(model='bert-base-chinese')
-        
+        >>> model_init(model='bert-base-chinese')
         """
         self.tokeniser = BertTokenizer.from_pretrained(model)
         self.model = BertForNextSentencePrediction.from_pretrained(model)
@@ -28,12 +28,12 @@ class SentencePrediction:
         else:
             self.dirve ='cpu'
         print('use ',self.dirve)
-        
+
         self.model.to(self.dirve)
     def free_ram(self):
         """
         这里进行手动初始化模型
-        
+
         """
         del self.tokeniser
         del self.model
@@ -80,7 +80,7 @@ class SentencePrediction:
             # except:
             #     items= item
             items.append(line)
-            
+
         print('items',items)
         return items
 
@@ -144,5 +144,6 @@ class SentencePrediction:
         """
         paragraph_array=self.text_to_array(text)
         next_line=self.one_sentence(paragraph_array,previous_line)
+        next_line = sorted(next_line, key=lambda k: k['next_line_prediction'],reverse=True)
         return next_line
 

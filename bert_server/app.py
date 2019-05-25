@@ -15,13 +15,13 @@ app = Flask(__name__)
 
 
 
- 
+
 def mem():
     print('Memory usage         : % 2.2f MB' % round(
         resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0,1)
     )
 
- 
+
 def get_post_data():
     """
     从请求中获取参数
@@ -44,10 +44,10 @@ def hello():
     return "Bert 中文测试!"
 
 @app.route("/tools/sentence/prediction")
- 
+
 def tools_sentence_prediction():
     return render_template("tools_sentence_prediction.html",**locals())
-    
+
 @app.route("/json/sentence/prediction" ,methods=['GET', 'POST'])
 @cross_origin()
 def json_sentence_prediction():
@@ -59,10 +59,11 @@ def json_sentence_prediction():
     previous_line = data['sentence']
     print('paragraph',paragraph)
     print('previous_line',previous_line)
-    
+
     if paragraph and previous_line:
         nextS=SentencePrediction()
-        nextS.model_init()
+        nextS.model_init(model='/home/terry/pan/github/bert/test/last/')
+        # nextS.model_init()
         next_line=nextS.sentence(paragraph,previous_line)
 
         #释放内存
@@ -99,12 +100,12 @@ def json_sentence_gaicuo():
     text2 = data['text2']
     # print('paragraph',paragraph)
     # print('previous_line',previous_line)
-    
+
     if text1 and text2:
 
         text_new,text_new1=mlm(text1,text2)
         # p = mp.Pool(1)
-        # prod_x=partial(mlm, text2=text2) # prod_x has only one argument x (y is fixed to 10) 
+        # prod_x=partial(mlm, text2=text2) # prod_x has only one argument x (y is fixed to 10)
         # text_new,text_new1 = p.map(prod_x,text1)
         # print rslt
 #         print(getrefcount(mlm))
@@ -117,7 +118,7 @@ def json_sentence_gaicuo():
             'text_new1':text_new1
 
         }
-        
+
         }
 
         data['msg']='返回预测结果'
@@ -127,7 +128,7 @@ def json_sentence_gaicuo():
     gc.collect()
     return jsonify(data)
     # return "Hello World!"
- 
+
 def mlm(text1,text2):
     print(text1,text2)
     mem()
@@ -135,11 +136,11 @@ def mlm(text1,text2):
     # next_line=nextS.sentence(paragraph,previous_line)
     mlm=MaskedLM()
     #初始化模型
-    mlm.model_init()
+    mlm.model_init(model='/home/terry/pan/github/bert/test/last/')
     # text1="今天天气好吗 "
     # text2="估计n牛错。"
     indexed_tokens,segments_ids= mlm.sentence_pre(text1,text2)
-    
+
     # print(t)
     text_new,text_new1=mlm.prediction(indexed_tokens,segments_ids)
     #释放内存
@@ -152,7 +153,7 @@ def mlm(text1,text2):
     del mlm
     gc.collect()
     mem()
-    
+
     return text_new,text_new1
 
 if __name__ == "__main__":

@@ -5,19 +5,47 @@ from Terry_toolkit import Text
 from tqdm import tqdm
 import numpy as np
 from random import *
+import multiprocessing as mp
+import gc
 class SentencePrediction:
     def __init__(self,model='bert-base-chinese'):
         print('start NextSentence')
+#         self.tokeniser = BertTokenizer.from_pretrained(model)
+#         self.model = BertForNextSentencePrediction.from_pretrained(model)
+    def model_init(self,model='bert-base-chinese'):
+        """
+        初始化模型内容
+        
+        >>> model_init(model='bert-base-chinese')
+        
+        """
         self.tokeniser = BertTokenizer.from_pretrained(model)
         self.model = BertForNextSentencePrediction.from_pretrained(model)
+        self.model.eval()
+        if torch.cuda.is_available():
 
+            self.dirve ='cuda'
+        else:
+            self.dirve ='cpu'
+        print('use ',self.dirve)
+        
+        self.model.to(self.dirve)
+    def free_ram(self):
+        """
+        这里进行手动初始化模型
+        
+        """
+        del self.tokeniser
+        del self.model
+        gc.collect()
+        torch.cuda.empty_cache()
+        print('已经释放模型内存')
     def one_sentence(self,data,previous_line):
         """
         文字数组中最符合的下一行
 
-        返回内容为numpy
+        返回内容为数组
 
-         items = np.array([['line_number','line_to_check','next_line_prediction']])
 
 
         >>> one_sentence(text_array,previous_line)
@@ -25,27 +53,42 @@ class SentencePrediction:
         >>> one_sentence(text_array,previous_line)
 
         """
-#         items = np.array([['line_number','prediction','text']])
+        # items = np.array([['line_number','prediction','text']])
 #         items = np.dtype([('line_number', int ),('prediction',  'S10'),('prediction',  'S10')])
-        for line_number in tqdm(range(0, len(data)-1)):
-#             print('line_number',line_number)
+        items=[]
+        # print(len(data))
+        data_len=len(data)
+        for line_number in tqdm(range(0, data_len-1)):
+            print('line_number',line_number)
 
             #选取需要检测的内容
             line_to_check = data[line_number]
             #检查是否是相关
             next_line_prediction=self.predictions_check(previous_line,line_to_check)
+            line={
+                'line_number':line_number,
+                'line_to_check':line_to_check,
+                'next_line_prediction':next_line_prediction
+
+
+            }
 #             print('line_to_check',line_to_check)
 #             print('相关性指数',next_line_prediction)
-            item = np.array([[line_number,line_to_check,next_line_prediction]])
-            try:
-                items=np.r_[items,item]
-            except:
-                items= item
+            # item = np.array([[line_number,line_to_check,next_line_prediction]])
+            # try:
+            #     items=np.r_[items,item]
+            # except:
+            #     items= item
+            items.append(line)
+            
+        print('items',items)
+        return items
+
         #基于最后一个数据排序
-        items=items[np.lexsort(items.T)]
+        # items=items[np.lexsort(items.T)]
 
         #倒序输出
-        return np.flipud(items)
+        # return np.flipud(items)
 
 #         pass
     def predictions_check(self,previous_line,line_to_check):
@@ -70,8 +113,8 @@ class SentencePrediction:
             indexed_tokens = self.tokeniser.convert_tokens_to_ids(tokenized_text)
 
             segments_ids = ([0] * len_line_1) + ([1] * len_line_2)
-            tokens_tensor = torch.tensor([indexed_tokens])
-            segments_tensors = torch.tensor([segments_ids])
+            tokens_tensor = torch.tensor([indexed_tokens]).to(self.dirve)
+            segments_tensors = torch.tensor([segments_ids]).to(self.dirve)
             #         print('tokens_tensor',tokens_tensor)
             #         print('segments_tensors',segments_tensors)
             #这里使用模型进行预测
